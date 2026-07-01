@@ -3,7 +3,7 @@
 A cinematic movie ticket booking application built with modern Android development practices using **Jetpack Compose**. This project focuses on high-quality UI/UX, seamless transitions, and immersive media integration.
 
 ## 📱 Demo
-<video src="media/movie_recording.mp4" width="320" />
+https://github.com/user-attachments/assets/a1ca0279-cb80-4133-9417-abd908281810
 
 ## 🚀 Features
 
