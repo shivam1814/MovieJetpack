@@ -5,6 +5,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.*
@@ -200,6 +203,9 @@ fun BookingScreen(
 
 @Composable
 fun DateAndTimeSelection() {
+    var selectedDate by remember { mutableStateOf("13") }
+    var selectedTime by remember { mutableStateOf("08:00 PM") }
+
     Column {
         Text(
             text = "When to Watch?",
@@ -221,22 +227,31 @@ fun DateAndTimeSelection() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            DateItem("11", "T", false)
-            DateItem("12", "W", false)
-            DateItem("13", "T", true)
-            DateItem("14", "F", false)
+            DateItem("11", "T", selectedDate == "11") { selectedDate = "11" }
+            DateItem("12", "W", selectedDate == "12") { selectedDate = "12" }
+            DateItem("13", "T", selectedDate == "13") { selectedDate = "13" }
+            DateItem("14", "F", selectedDate == "14") { selectedDate = "14" }
 
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = Color.White
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -244,11 +259,11 @@ fun DateAndTimeSelection() {
         Spacer(modifier = Modifier.height(32.dp))
 
         // Time Slots
-        TimeSlotRow(listOf("10:45 AM", ""), -1)
+        TimeSlotRow(listOf("10:45 AM", ""), selectedTime) { selectedTime = it }
         Spacer(modifier = Modifier.height(12.dp))
-        TimeSlotRow(listOf("02:45 PM", ""), -1, hasDot = true)
+        TimeSlotRow(listOf("02:45 PM", ""), selectedTime) { selectedTime = it }
         Spacer(modifier = Modifier.height(12.dp))
-        TimeSlotRow(listOf("08:00 PM", ""), 0)
+        TimeSlotRow(listOf("08:00 PM", ""), selectedTime) { selectedTime = it }
 
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -366,8 +381,15 @@ fun LottieSmile(index: Int) {
 }
 
 @Composable
-fun DateItem(day: String, weekday: String, isSelected: Boolean) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun DateItem(day: String, weekday: String, isSelected: Boolean, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick
+        )
+    ) {
         Box(
             modifier = Modifier
                 .size(60.dp)
@@ -393,50 +415,50 @@ fun DateItem(day: String, weekday: String, isSelected: Boolean) {
 }
 
 @Composable
-fun TimeSlotRow(times: List<String>, selectedIndex: Int, hasDot: Boolean = false) {
+fun TimeSlotRow(times: List<String>, selectedTime: String?, onTimeSelect: (String) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth()) {
         times.forEachIndexed { index, time ->
-            if (time.isNotEmpty()) {
-                val isSelected = index == selectedIndex
+            val isSelected = time == selectedTime
+            if (time.isNotBlank()) {
                 Box(
                     modifier = Modifier
-                        .weight(1f)
                         .height(64.dp)
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
+                        .fillMaxWidth()
                         .background(if (isSelected) Color.White else Color.White.copy(alpha = 0.15f))
+                        .clickable { onTimeSelect(time) }
                         .padding(horizontal = 20.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = time,
-                            color = if (isSelected) Color.Black else Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        if (hasDot) {
-                            Spacer(modifier = Modifier.weight(1f))
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Gray)
-                            )
-                        }
-                    }
+
+                    Text(
+                        text = time,
+                        color = if (isSelected) Color.Black else Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             } else {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(64.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White.copy(alpha = 0.15f))
-                )
+                Spacer(modifier = Modifier.weight(1f))
             }
+
             if (index < times.size - 1) {
                 Spacer(modifier = Modifier.width(12.dp))
             }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun BookingScreenPreview() {
+    SharedTransitionLayout {
+        AnimatedVisibility(visible = true) {
+            BookingScreen(
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this@AnimatedVisibility
+            )
         }
     }
 }
